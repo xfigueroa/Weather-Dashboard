@@ -5,8 +5,8 @@ import HistoryService from '../../service/historyService.js';
 import WeatherService from '../../service/weatherService.js';
 
 // TODO: POST Request with city name to retrieve weather data
-router.post('/', async (req: Request, res: Response) => {
-  const { city } = req.body;
+router.post('/:city', async (req: Request, res: Response) => {
+  const { city } = req.params;
 
   if (!city) {
     return res.status(400).json({ message: 'City name is required' });
@@ -26,7 +26,8 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // TODO: GET search history
-router.get('/history', async (req: Request, res: Response) => {
+router.get('/history', async (_req: Request, res: Response) => {
+  
   try {
     const cities = await HistoryService.getCities(); // Fetch the search history
     return res.json(cities);
@@ -37,7 +38,7 @@ router.get('/history', async (req: Request, res: Response) => {
 
 // * BONUS TODO: DELETE city from search history
 router.delete('/history/:id', async (req: Request, res: Response) => {
-  const { id } = req.params; // Extract city ID from URL parameters
+  const { id } = req.params; 
 
   if (!id) {
     return res.status(400).json({ message: 'City ID is required' });
@@ -45,7 +46,7 @@ router.delete('/history/:id', async (req: Request, res: Response) => {
 
   try {
     await HistoryService.removeCity(id); // Call the service to remove the city
-    return res.status(204).send(); // Send a 204 No Content response on successful deletion
+    return res.status(204).send();
   } catch (error: any) {
     return res.status(500).json({ message: 'Error deleting city from search history', error: error.message });
   }
