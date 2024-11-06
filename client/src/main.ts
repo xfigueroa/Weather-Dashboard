@@ -34,8 +34,8 @@ API Calls
 
 */
 
-const fetchWeather = async (cityName: string) => {
-  const response = await fetch('/api/weather/', {
+const fetchWeather = async (cityName: string): Promise<void> => {
+  const response = await fetch(`/api/weather/${cityName}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -47,11 +47,15 @@ const fetchWeather = async (cityName: string) => {
 
   console.log('weatherData: ', weatherData);
 
+  if (!weatherData || weatherData.length === 0) {
+    throw new Error('No weather data found for the specified city.');
+  }
+
   renderCurrentWeather(weatherData[0]);
   renderForecast(weatherData.slice(1));
 };
 
-const fetchSearchHistory = async () => {
+const fetchSearchHistory = async (): Promise<Response> => {
   const history = await fetch('/api/weather/history', {
     method: 'GET',
     headers: {
@@ -61,7 +65,7 @@ const fetchSearchHistory = async () => {
   return history;
 };
 
-const deleteCityFromHistory = async (id: string) => {
+const deleteCityFromHistory = async (id: string): Promise<void> => {
   await fetch(`/api/weather/history/${id}`, {
     method: 'DELETE',
     headers: {
@@ -76,26 +80,34 @@ Render Functions
 
 */
 
-const renderCurrentWeather = (currentWeather: any): void => {
-  const { city, date, icon, iconDescription, tempF, windSpeed, humidity } =
-    currentWeather;
+const renderCurrentWeather = (currentWeather: {
+  city: string;
+  date: string;
+  icon: string;
+  iconDescription: string;
+  tempF: number;
+  windSpeed: number;
+  humidity: number;
+}): void => {
+  const { city, date, icon, iconDescription, tempF, windSpeed, humidity } = currentWeather;
 
-  // convert the following to typescript
   heading.textContent = `${city} (${date})`;
-  weatherIcon.setAttribute(
-    'src',
-    `https://openweathermap.org/img/w/${icon}.png`
-  );
+  weatherIcon.setAttribute('src', `https://openweathermap.org/img/w/${icon}.png`);
   weatherIcon.setAttribute('alt', iconDescription);
   weatherIcon.setAttribute('class', 'weather-img');
-  heading.append(weatherIcon);
+
+  
+  const iconContainer = document.createElement('span');
+  iconContainer.append(weatherIcon);
+  heading.append(iconContainer);
+
   tempEl.textContent = `Temp: ${tempF}°F`;
   windEl.textContent = `Wind: ${windSpeed} MPH`;
   humidityEl.textContent = `Humidity: ${humidity} %`;
 
   if (todayContainer) {
-    todayContainer.innerHTML = '';
-    todayContainer.append(heading, tempEl, windEl, humidityEl);
+    todayContainer.innerHTML = ''; 
+    todayContainer.append(heading, tempEl, windEl, humidityEl); 
   }
 };
 
@@ -139,7 +151,7 @@ const renderForecastCard = (forecast: any) => {
   }
 };
 
-const renderSearchHistory = async (searchHistory: any) => {
+const renderSearchHistory = async (searchHistory: Response): Promise<void> => {
   const historyList = await searchHistory.json();
 
   if (searchHistoryContainer) {
@@ -150,13 +162,19 @@ const renderSearchHistory = async (searchHistory: any) => {
         '<p class="text-center">No Previous Search History</p>';
     }
 
-    // * Start at end of history array and count down to show the most recent cities at the top.
+    
     for (let i = historyList.length - 1; i >= 0; i--) {
-      const historyItem = buildHistoryListItem(historyList[i]);
-      searchHistoryContainer.append(historyItem);
+      const cityName = historyList[i].name;
+      
+      
+      if (![...searchHistoryContainer.children].some(btn => btn.textContent === cityName)) {
+        const historyItem = buildHistoryListItem(historyList[i]);
+        searchHistoryContainer.append(historyItem);
+      }
     }
   }
 };
+
 
 /*
 

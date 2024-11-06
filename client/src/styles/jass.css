@@ -1303,6 +1303,7 @@ label form [type='radio'] {
   flex-direction: row;
   margin-left: -15px;
   margin-right: -15px;
+  justify-content: center;
 }
 
 [class*='col-'] {

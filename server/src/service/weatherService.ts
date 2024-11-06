@@ -9,18 +9,22 @@ interface Coordinates {
 
 // Class for Weather data
 class Weather {
+  city: string;
+  date: string;
+  icon: string;
+  iconDescription: string;
+  tempF: number;
+  windSpeed: number;
   humidity: number;
-  precipitation: number;
-  temperature: number;
-  pressure: number;
-  wind: number;
 
-  constructor(humidity: number, precipitation: number, temperature: number, pressure: number, wind: number) {
+  constructor(city: string, date: string, icon: string, iconDescription: string, tempF: number, windSpeed: number, humidity: number) {
+    this.city = city;
+    this.date = date;   
+    this.icon = icon;
+    this.iconDescription = iconDescription;
+    this.tempF = tempF;
+    this.windSpeed = windSpeed;
     this.humidity = humidity;
-    this.precipitation = precipitation;
-    this.temperature = temperature;
-    this.pressure = pressure;
-    this.wind = wind;
   }
 }
 
@@ -49,6 +53,7 @@ class WeatherService {
       longitude: locationData.coord.lon,
     };
   }
+  
 
   private async fetchAndDestructureLocationData(): Promise<Coordinates> {
     const locationData = await this.fetchLocationData(this.city);
@@ -77,16 +82,34 @@ class WeatherService {
   }
 
   private buildForecastArray(weatherData: any[]): Weather[] {
-    return weatherData.map(data => {
-      const humidity = data.main?.humidity || 0;
-      const precipitation = data.rain ? data.rain['1h'] || 0 : 0;
-      const temperature = data.main?.temp || 0;
-      const pressure = data.main?.pressure || 0;
-      const wind = data.wind?.speed || 0;
+    const dailyForecast = [];
+    const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  
+   
+    for (let i = 0; i <= 5; i++) {
+      const dailyData = weatherData[i * 8]; 
+  
+      if (dailyData) {
+        const city = this.city;
 
-      return new Weather(humidity, precipitation, temperature, pressure, wind);
-    });
+        const dateObj = new Date(dailyData.dt_txt);
+        const date = daysOfWeek[dateObj.getUTCDay()]; 
+        const icon = dailyData.weather[0]?.icon || ''; 
+        const iconDescription = dailyData.weather[0]?.description || '';
+        const tempF = parseFloat(((dailyData.main?.temp - 273.15) * (9 / 5) + 32).toFixed(2)); 
+        const windSpeed = dailyData.wind?.speed || 0;
+        const humidity = dailyData.main?.humidity || 0; 
+  
+        dailyForecast.push(
+          new Weather(city, date, icon, iconDescription, tempF, windSpeed, humidity)
+        );
+      }
+    }
+  
+    return dailyForecast;
   }
+  
 }
+
 
 export default new WeatherService('New York'); 
