@@ -16,7 +16,7 @@ class HistoryService {
 
   constructor() {
     // Set the path to the searchHistory.json file
-    this.filePath = path.join(process.cwd(), 'searchHistory.json');
+    this.filePath = path.join(__dirname, 'searchHistory.json');
   }
   // TODO: Define a read method that reads from the searchHistory.json file
   private async read() {
